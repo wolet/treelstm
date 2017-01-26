@@ -190,6 +190,35 @@ function treelstm.read_sentiment_dataset(dir, vocab, fine_grained, dependency)
   return dataset
 end
 
+function add_tables(t1,t2)
+   i = 0
+   new_t = {}
+   for j=1, #t1 do
+      new_t[j] = t1[j]
+   end
+   for j=#t1+1, #t1+#t2 do
+      i = i+1
+      new_t[j] = t2[i]
+   end
+   return new_t
+end
+
+function treelstm.merge_sentiment_dataset(root_dataset, dir, vocab, fine_grained, dependency)
+   new_dataset = {}
+   new_dataset.vocab = root_dataset.vocab
+   new_dataset.fine_grained = root_dataset.fine_grained
+   dataset = treelstm.read_sentiment_dataset(dir, vocab, fine_grained, dependency)
+
+   -- add labels
+   new_dataset.labels = torch.cat(root_dataset.labels, dataset.labels)
+
+   -- add trees, sents
+   new_dataset.trees = add_tables(root_dataset.trees, dataset.trees)
+   new_dataset.sents = add_tables(root_dataset.sents, dataset.sents)
+   new_dataset.size = #new_dataset.trees
+   return new_dataset
+end
+
 function set_spans(tree)
   if tree.num_children == 0 then
     tree.lo, tree.hi = tree.leaf_idx, tree.leaf_idx
