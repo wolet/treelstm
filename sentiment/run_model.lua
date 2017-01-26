@@ -78,10 +78,6 @@ collectgarbage()
 header('model configuration')
 local model = model_class.load(load_model)
 model:print_config()
-print(model.log_trn_acc)
-print(model.log_trn_lss)
-print(model.log_val_acc)
-print(model.log_val_lss)
 
 -- load datasets
 print('loading datasets')

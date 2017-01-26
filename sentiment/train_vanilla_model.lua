@@ -143,17 +143,31 @@ printf('max epochs = %d\n', num_epochs)
 model:print_config()
 
 -- train
-local train_start = sys.clock()
-local best_dev_model = model
 header('Training model')
-for i = 1, num_epochs do
+local best_dev_model = model
+local train_start = sys.clock()
+
+for epoch = 1, num_epochs do
   local start = sys.clock()
-  printf('-- epoch %d\n', i)
+  printf('-- epoch %d\n', epoch)
   stop = model:train(train_dataset, dev_dataset, best_dev_model)
-  if stop then
-     break
-  end
+
+  trn_predictions, trn_loss = model:predict_dataset(train_dataset)
+  trn_score = accuracy(trn_predictions, train_dataset.labels)
+
+  dev_predictions, dev_loss = model:predict_dataset(dev_dataset)
+  dev_score = accuracy(dev_predictions, dev_dataset.labels)
+
+  model.log_trn_acc[epoch] = trn_score
+  model.log_trn_lss[epoch] = trn_loss
+  model.log_val_acc[epoch] = dev_score
+  model.log_val_lss[epoch] = dev_loss
+  model.log_bucket[epoch] = "-1:" .. model.n_observed
+
+  printf('trn acc and loss: %.4f| %.4f\n', model.log_trn_acc[epoch], model.log_trn_lss[epoch])
   printf('-- finished epoch in %.2fs\n', sys.clock() - start)
+
+  if stop then break end
 end
 
 printf('finished training in %.2fs\n', sys.clock() - train_start)

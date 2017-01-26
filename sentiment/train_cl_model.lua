@@ -145,22 +145,40 @@ printf('max epochs = %d\n', num_epochs)
 model:print_config()
 
 
-local train_start = sys.clock()
-local best_dev_model = model
-n_buckets = 10
 
 
 -- train model
 header('Training model')
 btable = {}
+local best_dev_model = model
+local n_buckets = 10
+local ii = 0
+local train_start = sys.clock()
+
 for bucket = 1, n_buckets do
    local b_start = sys.clock()
 
    table.insert(btable, bucket)
    for epoch = 1, num_epochs do
+      ii = ii + 1
       local start = sys.clock()
       stop = model:train(train_dataset, dev_dataset, best_dev_model)
+
+      trn_predictions, trn_loss = model:predict_dataset(train_dataset)
+      trn_score = accuracy(trn_predictions, train_dataset.labels)
+
+      dev_predictions, dev_loss = model:predict_dataset(dev_dataset)
+      dev_score = accuracy(dev_predictions, dev_dataset.labels)
+
+      model.log_trn_acc[ii] = trn_score
+      model.log_trn_lss[ii] = trn_loss
+      model.log_val_acc[ii] = dev_score
+      model.log_val_lss[ii] = dev_loss
+      model.log_bucket[ii] = "" .. bucket .. ":" .. model.n_observed
+
+      printf('trn acc and loss: %.4f| %.4f\n', model.log_trn_acc[ii], model.log_trn_lss[ii])
       printf('-- finished in %.2fs epoch %d|%d for bucket %s|%d \n', sys.clock() - start ,epoch, num_epochs, table.concat(btable, ",") , n_buckets)
+
       if stop then break end
    end
    model.progress = 0

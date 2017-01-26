@@ -28,11 +28,12 @@ function TreeLSTMSentiment:__init(config)
   self.progress          = config.progress          or 0
   self.regimen           = config.regimen           or 'vanilla'
   self.keep_log          = config.keep_log          or false
-  self.episode           = config.episode           or 20000
+  self.episode           = config.episode           or 10000
   self.log_trn_acc       = config.log_trn_acc       or {}
   self.log_trn_lss       = config.log_trn_lss       or {}
   self.log_val_acc       = config.log_val_acc       or {}
   self.log_val_lss       = config.log_val_lss       or {}
+  self.log_bucket        = config.log_bucket        or {}
 
   -- word embedding
   self.emb_dim = config.emb_vecs:size(2)
@@ -126,20 +127,12 @@ function TreeLSTMSentiment:train(dataset, dev_dataset, best_dev_model)
       if prev_10K < math.floor(self.n_observed/self.episode) then -- 10K training instances are observed
       	 prev_10K = math.floor(self.n_observed/self.episode)
 
-     	 trn_predictions, trn_loss = self:predict_dataset(dataset)
-     	 trn_score = accuracy(trn_predictions, dataset.labels)
-
      	 dev_predictions, dev_loss = self:predict_dataset(dev_dataset)
      	 dev_score = accuracy(dev_predictions, dev_dataset.labels)
 
-	 self.log_trn_acc[prev_10K] = trn_score
-	 self.log_trn_lss[prev_10K] = trn_loss
-	 self.log_val_acc[prev_10K] = dev_score
-	 self.log_val_lss[prev_10K] = dev_loss
-
 	 if self.keep_log then self:write_predictions(dev_predictions, prev_10K * self.episode) end
      	 printf('%d instances observed | current & best dev score: %.4f| %.4f\n', self.n_observed, dev_score, self.best_dev_score)
-     	 printf('trn acc and loss: %.4f| %.4f\n', self.log_trn_acc[prev_10K], self.log_trn_lss[prev_10K])
+
       	 if dev_score > self.best_dev_score then
 	    self.best_dev_score = dev_score
       	    self.progress = -1
@@ -252,7 +245,8 @@ function TreeLSTMSentiment:save(path)
     log_trn_acc       = self.log_trn_acc,
     log_trn_lss       = self.log_trn_lss,
     log_val_acc       = self.log_val_acc,
-    log_val_lss       = self.log_val_lss
+    log_val_lss       = self.log_val_lss,
+    log_bucket        = self.log_bucket
   }
 
   torch.save(path, {
