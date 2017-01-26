@@ -14,7 +14,7 @@ function TreeLSTMSentiment:__init(config)
   self.mem_dim		 = config.mem_dim	    or 150
   self.learning_rate	 = config.learning_rate	    or 0.05
   self.emb_learning_rate = config.emb_learning_rate or 0.1
-  self.batch_size	 = config.batch_size	    or 100
+  self.batch_size	 = config.batch_size	    or 25
   self.reg		 = config.reg		    or 1e-4
   self.structure	 = config.structure	    or 'constituency'
   self.fine_grained	 = (config.fine_grained == nil) and true or config.fine_grained
@@ -28,7 +28,7 @@ function TreeLSTMSentiment:__init(config)
   self.progress          = config.progress          or 0
   self.regimen           = config.regimen           or 'vanilla'
   self.keep_log          = config.keep_log          or false
-  self.episode           = config.episode           or 10000
+  self.episode           = config.episode           or 20000
   self.log_trn_acc       = config.log_trn_acc       or {}
   self.log_trn_lss       = config.log_trn_lss       or {}
   self.log_val_acc       = config.log_val_acc       or {}
